@@ -9,8 +9,7 @@ The goal of CaptiveSense is to automatically detect, identify, and authenticate 
 - Portal detection
 - Portal identification
 - Package portal fingerprint and methods
-- POST request module
-- Modular portal fingerprints and methods
+- Authenticate using POST
 
 
 ### Planned features
