@@ -5,92 +5,149 @@ import javax.net.ssl.HttpsURLConnection;
 public class Model{
     Boolean DBG = true; // DEBUG
 
-    private URL url;
     private HttpURLConnection conHttp;
     private HttpsURLConnection conHttps;
 
+
+    private URL url;
+    private String urlProtocol;
+    private URL redirect;
+    private String redirectProtocol;
+    private URL finalURL;
+    private String finalURLProtocol;
+
+    private int redirectCount = 0;
+
+    
     // Connection settings
     private int timeout; // in milliseconds
     private String reqMethod; // GET, POST, PUT, DELETE, etc.
+    private boolean followRedirects;
 
     // one argument constructor that takes and initializes URL
     public Model(URL url) {
         this.url = url;
-        if (DBG) System.out.println(url.getProtocol());
+        this.redirect = url;
+        this.finalURL = url;
+        this.urlProtocol = url.getProtocol();
 
         // Default connection settings
         this.timeout = 5000;
         this.reqMethod = "GET";
+        this.followRedirects = true;
         
-    }
-
-
-    /* 
-    Method to open http or https connection to URL;
-    Return true if connection is successful
-    */
-    public boolean openConnection(int timeout, String requestMethod "GET") {
-        // set connection settings
-        int timeout = 5000;
-        String requestMethod = "GET";
-
-
-
-        try {
-            // Open HTTP Connection
-            if (url.getProtocol() == "http"){
-                conHttp = (HttpURLConnection) url.openConnection(); // Construct conHttp
-
-                // Connection settings
-                conHttp.setConnectTimeout(this.timeout); // Connection timeout
-                conHttp.setReadTimeout(this.timeout); // Read timeout
-                conHttp.setRequestMethod(this.reqMethod); // Request method
-
-                // Connect to the URL
-                conHttp.connect();
-
-                // Return true if the connection is successful
-                return true;
-            }
-            // Open HTTPS Connection "conHttps"
-            else if (url.getProtocol() == "https"){
-                conHttps = (HttpsURLConnection) url.openConnection(); // Open a connection to the URL
-
-                // Connection settings
-                conHttps.setConnectTimeout(timeout); // Connection timeout
-                conHttps.setReadTimeout(timeout); // Read timeout
-                conHttps.setRequestMethod(reqMethod); // Request method
-
-                // Connect to the URL
-                conHttps.connect();
-
-                // Return true if the connection is successful
-                return true;
-            }
-            else {
-                // Return false if the connection is unsuccessful
-                return false;
-            }
-        } catch (Exception e) {
-                // Return false if the connection is unsuccessful
-                return false;
-            }
-        }
+        // Open connection
+        this.openConnection();
         
     }
 
     /*
-    Check204(): Return true if connection returns 204
+    Set & Get methods for connection settings
     */
-    public boolean check204() {
+    public void setTimeout(int timeout) {
+        this.timeout = timeout;
+    }
+
+    public void setReqMethod(String reqMethod) {
+        this.reqMethod = reqMethod;
+    }
+
+    public void setFollowRedirects(boolean followRedirects) {
+        this.followRedirects = followRedirects;
+    }
+
+
+    /* 
+    Method to set connection settings and open connection to URL;
+    Return true if connection is successful
+    */
+    public boolean openConnection() {
         try {
-            // Return true if the response code is 204
-            return conHttp.getResponseCode() == 204;
+            
+            if (urlProtocol.equals("http")) {
+                conHttp = (HttpURLConnection) url.openConnection();
+                conHttp.setConnectTimeout(timeout);
+                conHttp.setRequestMethod(reqMethod);
+                conHttp.setInstanceFollowRedirects(followRedirects);
+                
+                conHttp.connect();
+                return true;
+            } 
+            
+            else if (urlProtocol.equals("https")) {
+                conHttps = (HttpsURLConnection) url.openConnection();
+                conHttps.setConnectTimeout(timeout);
+                conHttps.setRequestMethod(reqMethod);
+                conHttps.setInstanceFollowRedirects(followRedirects);
+                
+                conHttps.connect();
+                return true;
+            } 
+            
+            else {
+                System.out.println("Invalid protocol");
+                return false;
+            }
         } catch (IOException e) {
-            // Return false if the response code is not 204
+            e.printStackTrace();
             return false;
         }
     }
+
+    /*
+    checkResponseCode(): Return true if connection returns specified status code
+    */
+    public boolean checkResponseCode(int code) {
+        try {
+            if (urlProtocol.equals("http")) return conHttp.getResponseCode() == code;
+            else if (urlProtocol.equals("https")) return conHttps.getResponseCode() == code;
+            else return false;
+        } catch (IOException e) {
+            return false;
+        }
+    }
+
+    /*
+    followRedirect(): Return final URL after following all redirects (302, META Refresh, ETC)
+    */
+    public URL followRedirect() {
+        // HTTP
+        if (urlProtocol.equals("http")){
+            conHttps.getHeaderFields();
+            redirect = conHttp.getURL();
+
+
+        }
+        // HTTPS
+        else if (urlProtocol.equals("https")){
+            conHttps.getHeaderFields();
+            redirect = conHttps.getURL();
+            
+
+        }
+        // Protocol error
+        else return null;
+
+        redirectProtocol = redirect.getProtocol();
+
+        if (!redirect.equals(finalURL)){ // if start URL is not equal to final URL
+            this.redirectCount++;
+            System.out.println("Redirect #" + this.redirectCount + ": " + redirect.toString());
+            finalURL = redirect;
+            this.followRedirect();
+        }
+
+        return finalURL;
+    }
+
+    /*
+    checkRedirect(): Return true if redirect is found (start URL != final URL)
+    */
+    public boolean checkRedirect() {
+
+        return !this.url.equals(this.redirect);
+    }
+
 
 
 }
