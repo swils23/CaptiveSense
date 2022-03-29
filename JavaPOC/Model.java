@@ -1,4 +1,7 @@
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.*;
 import javax.net.ssl.HttpsURLConnection;
 
@@ -18,7 +21,7 @@ public class Model{
 
     private int redirectCount = 0;
 
-    
+
     // Connection settings
     private int timeout; // in milliseconds
     private String reqMethod; // GET, POST, PUT, DELETE, etc.
@@ -108,35 +111,79 @@ public class Model{
     }
 
     /*
-    followRedirect(): Return final URL after following all redirects (302, META Refresh, ETC)
+    followRedirects(): Return final URL after following all redirects (302, META Refresh, ETC)
     */
-    public URL followRedirect() {
-        // HTTP
-        if (urlProtocol.equals("http")){
+    public URL followRedirects() throws IOException {
+        String content = "";
+        // HTTP (Initial connection)
+        if (urlProtocol.equals("http") && this.redirectCount == 0){
             conHttps.getHeaderFields();
             redirect = conHttp.getURL();
-
-
         }
-        // HTTPS
-        else if (urlProtocol.equals("https")){
+        // HTTPS (Initial connection)
+        else if (urlProtocol.equals("https") && this.redirectCount == 0){
             conHttps.getHeaderFields();
             redirect = conHttps.getURL();
-            
+        }
+        
+        // read page content of conHttp to string and print it; then scan for meta refresh
+        else if (redirectProtocol.equals("http") && this.redirectCount > 0){
+            // Create connection to redirect URL
+            HttpURLConnection redirHttp = (HttpURLConnection) redirect.openConnection();
+            redirHttp.setRequestMethod("GET");
+            redirHttp.setRequestProperty("User-Agent", "Mozilla/5.0");
+            redirHttp.setUseCaches(false);
+            redirHttp.setInstanceFollowRedirects(false);
+    
+            // Read page response to pageResponse
+            InputStream is = redirHttp.getInputStream();
+            BufferedReader br = new BufferedReader(new InputStreamReader(is));
+            StringBuilder sb = new StringBuilder();
+            String line;
+            while ((line = br.readLine()) != null) sb.append(line).append('\n');
+            br.close();
+            redirHttp.disconnect();
+
+            content = sb.toString();
+            System.out.println(content);
+        }
+        // read page content of conHttps to string and print it; then scan for meta refresh
+        else if (redirectProtocol.equals("https") && this.redirectCount > 0){
+            // Create connection to redirect URL
+            HttpsURLConnection redirHttps = (HttpsURLConnection) redirect.openConnection();
+            redirHttps.setRequestMethod("GET");
+            redirHttps.setRequestProperty("User-Agent", "Mozilla/5.0");
+            redirHttps.setUseCaches(false);
+            redirHttps.setInstanceFollowRedirects(false);
+    
+            // Read page response to pageResponse
+            InputStream is = redirHttps.getInputStream();
+            BufferedReader br = new BufferedReader(new InputStreamReader(is));
+            StringBuilder sb = new StringBuilder();
+            String line;
+            while ((line = br.readLine()) != null) sb.append(line).append('\n');
+            br.close();
+            redirHttps.disconnect();
+
+            content = sb.toString();
+            System.out.println(content);
 
         }
-        // Protocol error
-        else return null;
+
+        // TODO: Create scan for meta refresh method
+        // TODO: Create get page content method
+        // TODO determine http -> https redirects
+
 
         redirectProtocol = redirect.getProtocol();
 
-        if (!redirect.equals(finalURL)){ // if start URL is not equal to final URL
+        // Re-run until no more redirects
+        if (!redirect.equals(finalURL) && (redirectCount < 10)){ 
             this.redirectCount++;
             System.out.println("Redirect #" + this.redirectCount + ": " + redirect.toString());
             finalURL = redirect;
-            this.followRedirect();
+            this.followRedirects();
         }
-
         return finalURL;
     }
 

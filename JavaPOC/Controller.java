@@ -1,7 +1,8 @@
+import java.io.IOException;
 import java.net.*;
 
 public class Controller {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         // Declare var of type URL with data "http://www.gstatic.com/generate_204"
         URL gstaticURL = null, testURL = null;
         try {
@@ -25,7 +26,7 @@ public class Controller {
         System.out.println("Redirect: " + test.checkRedirect()); // DEBUG
 
         // if connectivity is true, but expected page content is not received or redirects to another page
-        System.out.println("Final URL: " + test.followRedirect()); // DEBUG
+        System.out.println("Final URL: " + test.followRedirects()); // DEBUG
 
         
 
