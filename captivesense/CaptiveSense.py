@@ -5,6 +5,14 @@ import requests
 
 
 def randomize_mac_address():
+    """
+    MUST BE RUN AS ROOT (use sudo to run this function)
+
+    Randomizes the MAC address of the current network interface, this requires ifconfig to be run as root.
+
+    This function is written for mac, YMMV. Also it rarely works on the first try, so you may need to run it a few times.
+    """
+
     # generate a random MAC address
     mac_address = ":".join(["{:02x}".format(x) for x in bytearray(os.urandom(6))])
 
@@ -36,6 +44,14 @@ def randomize_mac_address():
 
 
 def authenticate_client(slug, config_file="config.json"):
+    """
+    Uses a config with the given slug to authenticate the client with the captive portal.
+
+    :param slug: The slug of the config to use
+    :param config_file: The path to the config file to use
+    :return: None
+    """
+
     # read the config file
     with open(config_file, "r") as infile:
         config_data = json.load(infile)
