@@ -9,15 +9,18 @@ Please note this project is very much a work in progress and really just a proof
 ---
 
 ### TODO
-- Simple PyGui
-- Portal detection
-- Portal identification
-- Package portal fingerprint and methods
-- Authenticate using POST
+- [ ] Simple PyGui
+- [ ] Portal detection
+- [ ] Portal identification
+- [ ] Config overhaul
+	- [ ] Config manager
+
+- [X] Authenticate client with a portal
 
 
 ### Planned features
 - Electrum desktop GUI
+- Selenium-based portal detection, identification, and authentication
 - Support for user-specified credentials
 - Authenticate on behalf of another client (Specify alternate MAC address)
 - Support for 3rd party portal templates (from file or URL)
