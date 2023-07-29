@@ -1,11 +1,15 @@
-# CaptiveSense - WORK IN PROGRESS
+# CaptiveSense
 Effectively bypass captive portals client-side via automatic authentication
 
 The goal of CaptiveSense is to automatically detect, identify, and authenticate a client on networks that restrict access via captive portal.
 
+### Note
+Please note this project is very much a work in progress and really just a proof of concept at this point. This project exists because the guest WiFi at KFLL required clients reauthenticate every hour and I was _really_ bored waiting for my flight.
 
 ---
+
 ### TODO
+- Simple PyGui
 - Portal detection
 - Portal identification
 - Package portal fingerprint and methods
